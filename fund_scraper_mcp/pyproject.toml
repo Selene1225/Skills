@@ -1,0 +1,42 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fund-scraper-mcp"
+version = "0.1.0"
+description = "MCP Server for scraping Chinese mutual fund data from Eastmoney/Tiantian Fund"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
+]
+keywords = ["mcp", "fund", "scraper", "eastmoney", "finance", "china"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial",
+]
+
+dependencies = [
+    "mcp>=1.0.0",
+    "playwright>=1.40.0",
+    "aiohttp>=3.9.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/fund-scraper-mcp"
+Repository = "https://github.com/yourusername/fund-scraper-mcp"
+Issues = "https://github.com/yourusername/fund-scraper-mcp/issues"
+
+[project.scripts]
+fund-scraper-mcp = "fund_scraper_mcp.server:main_sync"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]

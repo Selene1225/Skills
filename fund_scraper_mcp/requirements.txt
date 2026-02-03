@@ -1,0 +1,8 @@
+# MCP Server dependencies
+mcp>=1.0.0
+
+# Browser automation
+playwright>=1.40.0
+
+# Utils
+aiohttp>=3.9.0
