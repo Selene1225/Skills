@@ -37,16 +37,19 @@ class EastmoneyScraper(BaseScraper):
         获取全量基金代码列表（约20000+只）
         数据源：fund.eastmoney.com/js/fundcode_search.js
         """
+        print("    正在访问基金代码数据页面...")
         page = await self.browser_manager.new_page()
-        
+
         try:
             # 访问全量基金代码JS文件
             url = f"{self.BASE_URL}/js/fundcode_search.js"
+            print(f"    URL: {url}")
             response = await page.goto(url, wait_until="load", timeout=30000)
-            
+
             if response.status != 200:
                 return self._error_response(f"请求失败，状态码: {response.status}")
-            
+
+            print("    正在解析基金代码...")
             content = await response.text()
             
             # 解析 var r = [[...], [...], ...];
@@ -68,7 +71,9 @@ class EastmoneyScraper(BaseScraper):
                         'jjlx': item[3],             # 基金类型
                         'pinyin': item[4] if len(item) > 4 else ''  # 全拼
                     })
-            
+
+            print(f"    ✅ 解析完成，共 {len(funds)} 个基金代码")
+
             return self._success_response(
                 funds,
                 total_count=len(funds),
@@ -404,19 +409,23 @@ class EastmoneyScraper(BaseScraper):
         """
         try:
             # 1. 获取全量基金代码
+            print("  [步骤1] 正在获取基金代码列表...")
             codes_result = await self.scrape_all_fund_codes()
             if not codes_result['success']:
                 return self._error_response("获取基金代码列表失败")
 
             all_codes = codes_result['data']
+            print(f"  ✅ 成功获取 {len(all_codes)} 个基金代码")
 
             # 限制数量（如果指定）
             if max_funds:
                 all_codes = all_codes[:max_funds]
+                print(f"  ℹ️  限制为前 {max_funds} 个基金")
 
             total = len(all_codes)
 
             # 2. 批量获取详情
+            print(f"\n  [步骤2] 开始批量获取基金详情（每批 {batch_size} 个，延迟 {delay}秒）...\n")
             all_results = []
             failed = []
 
@@ -424,10 +433,17 @@ class EastmoneyScraper(BaseScraper):
                 batch = all_codes[i:i+batch_size]
                 batch_symbols = [f['symbol'] for f in batch]
 
-                print(f"正在获取第 {i+1}-{min(i+batch_size, total)} 个基金（共 {total} 个）...")
+                batch_num = i // batch_size + 1
+                total_batches = (total + batch_size - 1) // batch_size
+                print(f"  【批次 {batch_num}/{total_batches}】 正在获取第 {i+1}-{min(i+batch_size, total)} 个基金...")
 
-                for symbol in batch_symbols:
+                success_count = 0
+                for idx, symbol in enumerate(batch_symbols, 1):
                     try:
+                        # 显示当前进度
+                        current = i + idx
+                        print(f"    [{current}/{total}] {symbol}...", end='', flush=True)
+
                         result = await self.scrape_detail(symbol)
                         if result['success']:
                             fund_data = result['data']
@@ -448,14 +464,20 @@ class EastmoneyScraper(BaseScraper):
                                 'jjzfe': fund_data.get('fund_scale', '')  # fund_scale -> jjzfe
                             }
                             all_results.append(formatted_data)
+                            success_count += 1
+                            print(" ✅")
                         else:
                             failed.append(symbol)
+                            print(" ❌")
                     except Exception as e:
-                        print(f"获取基金 {symbol} 失败: {str(e)}")
+                        print(f" ❌ 错误: {str(e)[:50]}")
                         failed.append(symbol)
 
                     # 延迟
                     await self.random_delay(delay * 0.8, delay * 1.2)
+
+                # 批次完成统计
+                print(f"  批次完成: 成功 {success_count}/{len(batch_symbols)} 个\n")
 
             return self._success_response(
                 all_results,
