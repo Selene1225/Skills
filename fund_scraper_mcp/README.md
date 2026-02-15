@@ -82,10 +82,21 @@ fund_scraper_mcp/           # 整个文件夹
 
 1. **拷贝整个 `fund_scraper_mcp` 文件夹**到新电脑（或使用 `git clone`）
 2. **安装 Python 3.8 或更高版本**（推荐 3.11）
+
+   **推荐：安装独立的 Python（更简单）**
    - Windows: [python.org](https://www.python.org/downloads/) 下载安装
+     - ⚠️ 安装时务必勾选 "Add Python to PATH"
    - macOS: `brew install python@3.11`
    - Linux: `sudo apt install python3.11` (Ubuntu/Debian)
    - 验证安装: `python --version` 或 `python3 --version`
+
+   **或者：使用 Anaconda/Conda**
+   - 如果使用 conda，需要先激活环境：
+     ```bash
+     conda activate base
+     python fund_scraper_gui.py
+     ```
+   - 或者将 Python 添加到系统 PATH
 3. **安装 Microsoft Edge**（Windows 通常已有）
    - Windows: 系统自带，无需安装
    - macOS/Linux: [下载 Edge](https://www.microsoft.com/edge)
