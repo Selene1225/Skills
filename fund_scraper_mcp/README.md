@@ -81,12 +81,22 @@ fund_scraper_mcp/           # 整个文件夹
 **最简部署步骤：**
 
 1. **拷贝整个 `fund_scraper_mcp` 文件夹**到新电脑（或使用 `git clone`）
-2. **安装 Python 3.8+**（如果没有的话）
+2. **安装 Python 3.8 或更高版本**（推荐 3.11）
+   - Windows: [python.org](https://www.python.org/downloads/) 下载安装
+   - macOS: `brew install python@3.11`
+   - Linux: `sudo apt install python3.11` (Ubuntu/Debian)
+   - 验证安装: `python --version` 或 `python3 --version`
 3. **安装 Microsoft Edge**（Windows 通常已有）
-4. **安装依赖：**
+   - Windows: 系统自带，无需安装
+   - macOS/Linux: [下载 Edge](https://www.microsoft.com/edge)
+4. **安装 Python 依赖：**
    ```bash
    cd fund_scraper_mcp
    pip install -r requirements.txt
+   ```
+   或使用 `pip3` (如果系统同时有 Python 2 和 3):
+   ```bash
+   pip3 install -r requirements.txt
    ```
 5. **开始使用！**（见下方使用方法）
 
@@ -361,6 +371,12 @@ AI：正在获取约26000个基金的完整信息...
 
 ## 📦 依赖说明
 
+**Python 版本要求：**
+- **最低版本**: Python 3.8
+- **推荐版本**: Python 3.10 或 3.11
+- **兼容版本**: Python 3.8, 3.9, 3.10, 3.11, 3.12
+
+**Python 包依赖：**
 ```
 mcp>=1.0.0              # MCP 协议支持
 playwright>=1.40.0      # 浏览器自动化
@@ -371,6 +387,12 @@ aiohttp>=3.9.0         # 异步 HTTP 请求
 ```bash
 pip install -r requirements.txt
 ```
+
+**为什么选择这些版本？**
+- **Python 3.8+**: `asyncio` 和类型提示的稳定支持
+- **Python 3.10/3.11**: 性能更好，推荐使用
+- **Playwright 1.40+**: 稳定的 Edge 浏览器支持
+- **MCP 1.0+**: 最新的 MCP 协议标准
 
 ---
 
