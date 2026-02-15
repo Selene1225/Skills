@@ -104,9 +104,45 @@ fund_scraper_mcp/           # 整个文件夹
 
 ## 📖 使用方法
 
-### 方式一：命令行直接使用（推荐）
+### 方式一：图形界面（最简单，推荐新手）⭐
 
-**适合场景：** 直接获取基金数据，不需要 AI 助手
+**适合场景：** 不熟悉命令行，想要可视化操作
+
+#### 1. 双击启动
+
+**Windows:**
+- 直接双击 `启动基金数据获取工具.bat`
+- 程序会自动检查 Python 和依赖，并启动图形界面
+
+**或者手动启动:**
+```bash
+python fund_scraper_gui.py
+```
+
+#### 2. 图形界面操作
+
+- **输出文件**: 点击"浏览"选择保存位置，或直接输入文件名
+- **断点续传**: 如果之前中断过，勾选此项继续之前的进度
+- **批次大小**: 每批处理多少个基金（默认100）
+- **延迟**: 每个请求间隔秒数（默认1秒）
+- 点击"**开始获取**"按钮，程序会：
+  - ✅ 自动获取所有26000+个基金
+  - ✅ 实时显示进度和日志
+  - ✅ 数据边爬边写入文件
+  - ✅ 可随时点击"停止"中断，下次续传
+
+**特点：**
+- 🎯 操作简单，无需命令行知识
+- 📊 实时进度条和日志显示
+- 💾 边爬边写，不怕中断
+- 🔄 支持断点续传
+- 📁 自动显示文件保存位置
+
+---
+
+### 方式二：命令行直接使用
+
+**适合场景：** 熟悉命令行，需要自动化脚本
 
 #### 1. 获取前100个基金（测试）
 ```bash
@@ -161,7 +197,7 @@ symbol,sname,per_nav,total_nav,yesterday_nav,nav_rate,nav_a,sg_states,nav_date,f
 
 ---
 
-### 方式二：MCP Server（供 AI 助手使用）
+### 方式三：MCP Server（供 AI 助手使用）
 
 **适合场景：** 通过 AI 助手（Copilot、Claude）调用
 
@@ -276,19 +312,21 @@ pip install -r requirements.txt
 
 ```
 fund_scraper_mcp/
-├── server.py              # MCP Server 主入口
-├── browser_manager.py     # Microsoft Edge 浏览器管理
-├── fetch_funds.py         # 命令行工具（边爬边写、断点续传）
+├── server.py                      # MCP Server 主入口
+├── browser_manager.py             # Microsoft Edge 浏览器管理
+├── fetch_funds.py                 # 命令行工具（边爬边写、断点续传）
+├── fund_scraper_gui.py           # 图形界面工具 ⭐ 新增
+├── 启动基金数据获取工具.bat      # Windows 一键启动脚本 ⭐ 新增
 ├── scrapers/
 │   ├── __init__.py
-│   ├── base_scraper.py    # 爬虫抽象基类
-│   └── eastmoney_scraper.py  # 天天基金爬虫实现
+│   ├── base_scraper.py            # 爬虫抽象基类
+│   └── eastmoney_scraper.py       # 天天基金爬虫实现
 ├── utils/
 │   ├── __init__.py
-│   └── anti_detection.py  # 反检测策略（UA轮换、延迟等）
-├── test_scraper.py        # 功能测试脚本
-├── requirements.txt       # Python 依赖
-└── README.md              # 本文件
+│   └── anti_detection.py          # 反检测策略（UA轮换、延迟等）
+├── test_scraper.py                # 功能测试脚本
+├── requirements.txt               # Python 依赖
+└── README.md                      # 本文件
 ```
 
 ---
@@ -335,13 +373,21 @@ fund_scraper_mcp/
 
 ## 🎯 常见使用场景
 
-### 场景1：快速获取少量基金数据
+### 场景1：新手用户 - 使用图形界面
+```
+1. 双击 "启动基金数据获取工具.bat"
+2. 在界面中点击"浏览"选择保存位置
+3. 点击"开始获取"
+4. 等待程序自动完成（可以看到实时进度）
+```
+
+### 场景2：快速获取少量基金数据（命令行）
 ```bash
 # 获取前50个基金，快速测试
 python fetch_funds.py --max 50
 ```
 
-### 场景2：获取所有基金数据（推荐工作流）
+### 场景3：获取所有基金数据（推荐工作流）
 ```bash
 # 第一步：开始获取（可能需要数小时）
 python fetch_funds.py --all --output all_funds_20260215.csv
@@ -352,13 +398,13 @@ python fetch_funds.py --all --output all_funds_20260215.csv --resume
 # 继续运行，直到完成所有26000+个基金
 ```
 
-### 场景3：加快速度（风险：可能被反爬虫）
+### 场景4：加快速度（风险：可能被反爬虫）
 ```bash
 # 减少延迟到0.5秒，批次增大到200
 python fetch_funds.py --all --output fast.csv --batch 200 --delay 0.5
 ```
 
-### 场景4：通过 AI 助手获取数据
+### 场景5：通过 AI 助手获取数据
 ```
 你：请用 fetch_all_funds_info 获取所有基金数据
 
