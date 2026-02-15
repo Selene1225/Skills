@@ -126,9 +126,9 @@ class FundScraperGUI:
         if filename:
             self.output_var.set(filename)
 
-    def log(self, message):
+    def log(self, message, end='\n'):
         """添加日志"""
-        self.log_text.insert(tk.END, f"{message}\n")
+        self.log_text.insert(tk.END, f"{message}{end}")
         self.log_text.see(tk.END)
         self.root.update_idletasks()
 
