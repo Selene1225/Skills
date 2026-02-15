@@ -15,6 +15,22 @@ import asyncio
 import sys
 import os
 from datetime import datetime
+import shutil
+
+# 清理 Python 缓存文件（避免旧代码缓存问题）
+def clear_pycache():
+    """清理当前目录及子目录下的所有 __pycache__ 文件夹"""
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    for root, dirs, _ in os.walk(current_dir):
+        if '__pycache__' in dirs:
+            cache_path = os.path.join(root, '__pycache__')
+            try:
+                shutil.rmtree(cache_path)
+            except:
+                pass
+
+# 启动时清理缓存
+clear_pycache()
 
 # 添加项目根目录到 path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -249,14 +265,21 @@ class FundScraperGUI:
             file_handle = open(output_file, 'a' if not is_new_file else 'w',
                              newline='', encoding='utf-8-sig')
 
+            # 英文字段名
             fieldnames = ['symbol', 'sname', 'per_nav', 'total_nav', 'yesterday_nav',
                          'nav_rate', 'nav_a', 'sg_states', 'nav_date', 'fund_manager',
                          'jjlx', 'jjzfe']
 
+            # 中文标题对应
+            chinese_headers = ['基金代码', '基金名称', '单位净值', '累计净值', '前一日净值',
+                             '增长率', '涨跌额', '申购状态', '净值日期', '基金经理',
+                             '基金类型', '基金zfe']
+
             writer = csv.DictWriter(file_handle, fieldnames=fieldnames, extrasaction='ignore')
 
             if is_new_file:
-                writer.writeheader()
+                # 手动写入中文标题
+                file_handle.write(','.join(chinese_headers) + '\n')
                 self.log(f"📝 创建新文件: {os.path.abspath(output_file)}")
             else:
                 self.log(f"📝 追加到已有文件: {os.path.abspath(output_file)}")
