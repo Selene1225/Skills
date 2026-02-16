@@ -65,7 +65,11 @@ class FundScraperGUI:
 
         # 输出文件
         ttk.Label(main_frame, text="输出文件:").grid(row=1, column=0, sticky=tk.W, pady=5)
-        self.output_var = tk.StringVar(value=f"all_funds_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+        # 默认输出到根目录（上一级目录）
+        root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        default_filename = f"all_funds_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        default_path = os.path.join(root_dir, default_filename)
+        self.output_var = tk.StringVar(value=default_path)
         output_entry = ttk.Entry(main_frame, textvariable=self.output_var, width=50)
         output_entry.grid(row=1, column=1, sticky=(tk.W, tk.E), pady=5, padx=5)
 
@@ -78,9 +82,15 @@ class FundScraperGUI:
                                        variable=self.resume_var)
         resume_check.grid(row=2, column=1, sticky=tk.W, pady=5)
 
+        # 去重选项
+        self.dedupe_var = tk.BooleanVar(value=False)
+        dedupe_check = ttk.Checkbutton(main_frame, text="智能去重（过滤前端/后端/ABC类重复基金）",
+                                       variable=self.dedupe_var)
+        dedupe_check.grid(row=3, column=1, sticky=tk.W, pady=5)
+
         # 高级选项
         options_frame = ttk.LabelFrame(main_frame, text="高级选项", padding="10")
-        options_frame.grid(row=3, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
+        options_frame.grid(row=4, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=10)
         options_frame.columnconfigure(1, weight=1)
 
         ttk.Label(options_frame, text="批次大小:").grid(row=0, column=0, sticky=tk.W, pady=5)
@@ -96,7 +106,7 @@ class FundScraperGUI:
 
         # 控制按钮
         button_frame = ttk.Frame(main_frame)
-        button_frame.grid(row=4, column=0, columnspan=3, pady=10)
+        button_frame.grid(row=5, column=0, columnspan=3, pady=10)
 
         self.start_btn = ttk.Button(button_frame, text="开始获取",
                                     command=self.start_scraping, width=15)
@@ -110,16 +120,16 @@ class FundScraperGUI:
         self.progress_var = tk.DoubleVar()
         self.progress_bar = ttk.Progressbar(main_frame, variable=self.progress_var,
                                            maximum=100, length=400)
-        self.progress_bar.grid(row=5, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
+        self.progress_bar.grid(row=6, column=0, columnspan=3, sticky=(tk.W, tk.E), pady=5)
 
         # 状态标签
         self.status_var = tk.StringVar(value="准备就绪")
         status_label = ttk.Label(main_frame, textvariable=self.status_var)
-        status_label.grid(row=6, column=0, columnspan=3, pady=5)
+        status_label.grid(row=7, column=0, columnspan=3, pady=5)
 
         # 日志输出
         log_frame = ttk.LabelFrame(main_frame, text="运行日志", padding="5")
-        log_frame.grid(row=7, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
+        log_frame.grid(row=8, column=0, columnspan=3, sticky=(tk.W, tk.E, tk.N, tk.S), pady=5)
         log_frame.rowconfigure(0, weight=1)
         log_frame.columnconfigure(0, weight=1)
 
@@ -127,7 +137,7 @@ class FundScraperGUI:
         self.log_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
         # 配置主框架的行列权重
-        main_frame.rowconfigure(7, weight=1)
+        main_frame.rowconfigure(8, weight=1)
 
         # 停止标志
         self.stop_flag = False
@@ -147,6 +157,42 @@ class FundScraperGUI:
         self.log_text.insert(tk.END, f"{message}{end}")
         self.log_text.see(tk.END)
         self.root.update_idletasks()
+
+    def _deduplicate_funds(self, funds):
+        """
+        智能去重：去除前端/后端/ABC类重复的基金
+        规则：
+        1. 保留基金代码最小的（通常是A类或前端）
+        2. 通过基金名称判断是否为同一基金
+        """
+        import re
+
+        # 按基金名称分组
+        name_to_funds = {}
+        for fund in funds:
+            # 提取基金名称（去除前端/后端/ABC标记）
+            name = fund['sname']
+            # 移除 (前端：xxx 后端：xxx) 这样的标记
+            clean_name = re.sub(r'\(.*?前端.*?后端.*?\)', '', name)
+            # 移除 A/B/C 类标记
+            clean_name = re.sub(r'[ABC](?:\(|$)', '', clean_name)
+            clean_name = clean_name.strip()
+
+            if clean_name not in name_to_funds:
+                name_to_funds[clean_name] = []
+            name_to_funds[clean_name].append(fund)
+
+        # 对每组基金，保留代码最小的
+        result = []
+        for clean_name, group in name_to_funds.items():
+            if len(group) == 1:
+                result.append(group[0])
+            else:
+                # 选择基金代码最小的
+                selected = min(group, key=lambda x: x['symbol'])
+                result.append(selected)
+
+        return result
 
     def start_scraping(self):
         """开始获取数据"""
@@ -191,6 +237,7 @@ class FundScraperGUI:
         """获取基金数据"""
         output_file = self.output_var.get()
         resume = self.resume_var.get()
+        dedupe = self.dedupe_var.get()
         batch_size = self.batch_var.get()
         delay = self.delay_var.get()
 
@@ -243,6 +290,15 @@ class FundScraperGUI:
 
             all_codes = codes_result['data']
             self.log(f"  ✅ 成功获取 {len(all_codes)} 个基金代码")
+
+            # 智能去重（去除前端/后端/ABC类重复）
+            if dedupe:
+                self.log(f"\n  [去重处理] 正在过滤重复基金...")
+                original_count = len(all_codes)
+                all_codes = self._deduplicate_funds(all_codes)
+                removed = original_count - len(all_codes)
+                if removed > 0:
+                    self.log(f"  ✅ 去重完成，过滤 {removed} 个重复基金，剩余 {len(all_codes)} 个")
 
             # 过滤已处理的基金
             todo_codes = [f for f in all_codes if f['symbol'] not in processed_symbols]
