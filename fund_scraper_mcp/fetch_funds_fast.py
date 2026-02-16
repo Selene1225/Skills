@@ -261,7 +261,7 @@ if __name__ == "__main__":
     if not os.path.exists(default_dir):
         default_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-    default_filename = f"all_funds_fast_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    default_filename = f"{datetime.now().strftime('%Y%m%d')}_基金数据.csv"
     default_path = os.path.join(default_dir, default_filename)
 
     # 弹出文件保存对话框
