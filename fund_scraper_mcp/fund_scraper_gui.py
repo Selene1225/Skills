@@ -208,8 +208,10 @@ class FundScraperGUI:
                     import csv
                     reader = csv.DictReader(f)
                     for row in reader:
-                        if row.get('symbol'):
-                            processed_symbols.add(row['symbol'])
+                        # 兼容中文和英文标题
+                        symbol = row.get('symbol') or row.get('基金代码')
+                        if symbol:
+                            processed_symbols.add(symbol)
                 if processed_symbols:
                     self.log(f"已处理 {len(processed_symbols)} 个基金，将跳过这些基金")
             except Exception as e:

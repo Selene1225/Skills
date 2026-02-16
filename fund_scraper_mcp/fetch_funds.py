@@ -34,10 +34,17 @@ class IncrementalCSVWriter:
     def __init__(self, filename):
         self.filename = filename
         self.abs_path = os.path.abspath(filename)
+        # 英文字段名（用于 DictWriter）
         self.fieldnames = [
             'symbol', 'sname', 'per_nav', 'total_nav', 'yesterday_nav',
             'nav_rate', 'nav_a', 'sg_states', 'nav_date', 'fund_manager',
             'jjlx', 'jjzfe'
+        ]
+        # 中文标题对应
+        self.chinese_headers = [
+            '基金代码', '基金名称', '单位净值', '累计净值', '前一日净值',
+            '增长率', '涨跌额', '申购状态', '净值日期', '基金经理',
+            '基金类型', '基金zfe'
         ]
         self.count = 0
         self.file = None
@@ -49,7 +56,8 @@ class IncrementalCSVWriter:
         if self.is_new_file:
             self.file = open(self.filename, 'w', newline='', encoding='utf-8-sig')
             self.writer = csv.DictWriter(self.file, fieldnames=self.fieldnames, extrasaction='ignore')
-            self.writer.writeheader()
+            # 手动写入中文标题
+            self.file.write(','.join(self.chinese_headers) + '\n')
             print(f"📝 创建新文件: {self.abs_path}")
         else:
             # 如果是已存在的文件，追加模式打开
@@ -84,8 +92,10 @@ def load_processed_symbols(filename):
         with open(filename, 'r', encoding='utf-8-sig') as f:
             reader = csv.DictReader(f)
             for row in reader:
-                if row.get('symbol'):
-                    processed.add(row['symbol'])
+                # 兼容中文和英文标题
+                symbol = row.get('symbol') or row.get('基金代码')
+                if symbol:
+                    processed.add(symbol)
     except Exception as e:
         print(f"⚠️ 读取已有文件失败: {e}")
         return set()
